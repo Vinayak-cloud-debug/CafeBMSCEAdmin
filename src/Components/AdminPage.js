@@ -1,5 +1,6 @@
 
 
+
 // import React, { useState, useEffect } from 'react';
 // import { User } from 'lucide-react';
 // import { useAuthContext } from '../context/AuthContext';
@@ -88,7 +89,9 @@
     
 //     try {
 //       // Update each order status
-//       const updatePromises = updates.map(({fullName,email, orderId, newStatus }) =>
+//       const updatePromises = updates.map(({ fullName,email,orderId, newStatus }) =>
+
+       
 //         axios.put(`https://cafebmscebackend.onrender.com/api/updateOrderStatus`, {
 //           fullName,
 //           email,
@@ -270,11 +273,8 @@
 // }
 
 
-
-
-
 import React, { useState, useEffect } from 'react';
-import { User } from 'lucide-react';
+import { User, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
@@ -288,7 +288,15 @@ export default function AdminPage() {
   const [orders, setOrders] = useState([]);
   const [editedStatuses, setEditedStatuses] = useState({});
   const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Password protection states
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [isCheckingPassword, setIsCheckingPassword] = useState(false);
 
+  const ADMIN_PASSWORD = "BullMarket@12";
   const location = useLocation();
 
   useEffect(() => {
@@ -306,27 +314,55 @@ export default function AdminPage() {
   const email = localStorage.getItem("EmailId");
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await axios.get(`https://cafebmscebackend.onrender.com/api/fetchUserOrders`);
-        console.log(res.data);
-        setOrders(res.data);
-        
-        // Initialize editedStatuses with current order statuses
-        const initialStatuses = {};
-        res.data.forEach(user => {
-          user.orders.forEach(order => {
-            initialStatuses[order._id] = order.status;
+    if (isAuthenticated) {
+      const fetchOrders = async () => {
+        try {
+          const res = await axios.get(`https://cafebmscebackend.onrender.com/api/fetchUserOrders`);
+          console.log(res.data);
+          setOrders(res.data);
+          
+          // Initialize editedStatuses with current order statuses
+          const initialStatuses = {};
+          res.data.forEach(user => {
+            user.orders.forEach(order => {
+              initialStatuses[order._id] = order.status;
+            });
           });
-        });
-        setEditedStatuses(initialStatuses);
-      } catch (err) {
-        console.error("Failed to fetch orders:", err);
-        alert("Failed to fetch orders. Please try again.");
+          setEditedStatuses(initialStatuses);
+        } catch (err) {
+          console.error("Failed to fetch orders:", err);
+          alert("Failed to fetch orders. Please try again.");
+        }
+      };
+      fetchOrders();
+    }
+  }, [location.pathname, isAuthenticated]);
+
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    setIsCheckingPassword(true);
+    setPasswordError("");
+
+    // Simulate a small delay for better UX
+    setTimeout(() => {
+      if (password === ADMIN_PASSWORD) {
+        setIsAuthenticated(true);
+        setPassword(""); // Clear password from state for security
+      } else {
+        setPasswordError("Incorrect password. Please try again.");
+        setPassword("");
       }
-    };
-    fetchOrders();
-  }, [location.pathname]);
+      setIsCheckingPassword(false);
+    }, 1000);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setPassword("");
+    setPasswordError("");
+    setOrders([]);
+    setEditedStatuses({});
+  };
 
   const handleStatusChange = (orderId, newStatus) => {
     setEditedStatuses(prev => ({
@@ -343,8 +379,8 @@ export default function AdminPage() {
       user.orders.forEach(order => {
         if (editedStatuses[order._id] && editedStatuses[order._id] !== order.status) {
           updates.push({
-            fullName:user.fullName,
-            email:user.username,
+            fullName: user.fullName,
+            email: user.username,
             orderId: order._id,
             newStatus: editedStatuses[order._id]
           });
@@ -361,13 +397,11 @@ export default function AdminPage() {
     
     try {
       // Update each order status
-      const updatePromises = updates.map(({ fullName,email,orderId, newStatus }) =>
-
-       
+      const updatePromises = updates.map(({ fullName, email, orderId, newStatus }) =>
         axios.put(`https://cafebmscebackend.onrender.com/api/updateOrderStatus`, {
-          fullName,
-          email,
-          orderId,
+          fullName:fullName,
+          email:email,
+          orderId:orderId,
           status: newStatus
         })
       );
@@ -403,6 +437,7 @@ export default function AdminPage() {
     }
   };
 
+  // Loading screen
   if (isLoading || !fullName) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
@@ -414,9 +449,92 @@ export default function AdminPage() {
     );
   }
 
+  // Password protection screen
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-orange-50 p-6">
+        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+          <div className="flex flex-col items-center text-center mb-8">
+            <div className="flex justify-center items-center mb-4 p-4 bg-red-100 rounded-full">
+              <Lock size={40} className="text-red-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Admin Access Required</h2>
+            <p className="text-gray-600 text-sm">
+              Please enter the admin password to access the panel
+            </p>
+          </div>
+
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter admin password"
+                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                required
+                disabled={isCheckingPassword}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                disabled={isCheckingPassword}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+
+            {passwordError && (
+              <div className="text-red-600 text-sm text-center bg-red-50 p-2 rounded">
+                {passwordError}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isCheckingPassword || !password.trim()}
+              className={`w-full py-3 rounded-lg font-semibold transition duration-200 ${
+                isCheckingPassword || !password.trim()
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-red-600 hover:bg-red-700 active:scale-95'
+              } text-white`}
+            >
+              {isCheckingPassword ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 inline-block"></div>
+                  Verifying...
+                </>
+              ) : (
+                'Access Admin Panel'
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-xs text-gray-500">
+              Authorized personnel only
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main admin panel (only shown after authentication)
   return (
-   <div className="flex flex-col items-center justify-center min-h-screen bg-orange-50 p-6">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6">Admin Panel - Order Management</h2>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-orange-50 p-6">
+      <div className="w-full max-w-4xl mb-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-3xl font-bold text-gray-800">Admin Panel - Order Management</h2>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition duration-200"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
 
       {orders.length === 0 ? (
         <div className="text-center text-gray-500">
@@ -425,7 +543,7 @@ export default function AdminPage() {
       ) : (
         orders.map((user, index) => (
           <div key={user._id} className="bg-white rounded-2xl shadow-xl mt-10 p-8 w-full max-w-3xl">
-            
+
             {/* Profile Section */}
             <div className="flex flex-col items-center text-center mb-8">
               <div className="flex justify-center items-center mb-4">
@@ -543,5 +661,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
-
