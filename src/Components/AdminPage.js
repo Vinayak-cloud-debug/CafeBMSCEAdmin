@@ -88,7 +88,7 @@ export default function AdminPage() {
     
     try {
       // Update each order status
-      const updatePromises = updates.map(({ orderId, newStatus }) =>
+      const updatePromises = updates.map(({fullName,email, orderId, newStatus }) =>
         axios.put(`https://cafebmscebackend.onrender.com/api/updateOrderStatus`, {
           fullName,
           email,
