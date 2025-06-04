@@ -32,7 +32,7 @@ export const AuthContextProvider = ({ children }) => {
     const validateToken = async () => {
       try {
         // Assuming the backend has a route to validate token from cookie
-        const res = await axios.get("http://localhost:9001/api/getToken", {
+        const res = await axios.get("https://cafebmscebackend.onrender.com/api/getToken", {
           withCredentials: true, // Send cookies with request
         });
 
