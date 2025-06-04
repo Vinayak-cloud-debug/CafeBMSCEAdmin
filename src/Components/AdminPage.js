@@ -179,15 +179,16 @@ export default function AdminPage() {
         </div>
       ))}
 
-      {/* Save Button */}
-      <div className="text-center mt-8">
-        <button
-          onClick={updateAllStatuses}
-          className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition-shadow hover:shadow-lg"
-        >
-          Save All Changes
-        </button>
-      </div>
+        <div className="fixed bottom-20 right-6 z-50">
+  {/* Floating Toggle Button */}
+  <button
+    onClick={updateAllStatuses}
+    className="w-40 h-10 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full flex items-center justify-center shadow-lg  active:scale-95 transition duration-200"
+    aria-label="Open category menu"
+  >
+   Save All Changes
+  </button>
+  </div>
     </div>
   );
 }
