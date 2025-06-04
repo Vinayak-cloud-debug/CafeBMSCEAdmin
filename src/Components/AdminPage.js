@@ -70,6 +70,8 @@ export default function AdminPage() {
       user.orders.forEach(order => {
         if (editedStatuses[order._id] && editedStatuses[order._id] !== order.status) {
           updates.push({
+            fullName:user.fullName,
+            email:user.username,
             orderId: order._id,
             newStatus: editedStatuses[order._id]
           });
@@ -88,6 +90,8 @@ export default function AdminPage() {
       // Update each order status
       const updatePromises = updates.map(({ orderId, newStatus }) =>
         axios.put(`https://cafebmscebackend.onrender.com/api/updateOrderStatus`, {
+          fullName,
+          email,
           orderId,
           status: newStatus
         })
