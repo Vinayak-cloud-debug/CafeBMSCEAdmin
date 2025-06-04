@@ -32,7 +32,7 @@ export const AuthContextProvider = ({ children }) => {
     const validateToken = async () => {
       try {
         // Assuming the backend has a route to validate token from cookie
-        const res = await axios.get("https://cafebmscebackend.onrender.com/api/getToken", {
+        const res = await axios.get("http://localhost:9001/api/getToken", {
           withCredentials: true, // Send cookies with request
         });
 
@@ -40,17 +40,11 @@ export const AuthContextProvider = ({ children }) => {
         console.log("User Data:", res.data.user,res.data.user.username);
 
 
-
         console.log(res.data.user.fullName,res.data.user.username,res.data.user.gender)
 
         localStorage.setItem("FullName",res.data.user.fullName);
         localStorage.setItem("EmailId",res.data.user.username);
         localStorage.setItem("Gender",res.data.user.gender);
-
-
-
-
-
 
 
         console.log(res.data.token)
