@@ -396,7 +396,7 @@ export default function AdminPage() {
                         <p className="text-gray-500 text-center py-4">No orders found for this status.</p>
                       ) : (
                         <div className="space-y-3">
-                          {filteredOrders.map((order, idx) => (
+                            {[...filteredOrders].reverse().map((order, idx) => (
                             <div key={order._id || idx} className={`border rounded-lg p-3 ${compactView ? 'bg-gray-50' : 'bg-white shadow-sm'}`}>
                               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                                 {/* Order Info */}
